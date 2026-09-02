@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Be Miami — Fleet Admin</title>
+<style>
+  :root{
+    --ink:#14181B;
+    --paper:#FAF8F3;
+    --line:#E3DED2;
+    --muted:#5C5952;
+    --accent:#E08A3E;
+    --danger:#B3432B;
+    --white:#FFFFFF;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    background:var(--paper); color:var(--ink); font-size:14px;
+  }
+  #login-view{
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+  }
+  .login-box{
+    background:var(--white); border:1px solid var(--line); border-radius:8px;
+    padding:36px; width:320px;
+  }
+  .login-box h1{font-size:18px; margin:0 0 20px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block; font-size:12px; color:var(--muted); margin-bottom:4px;}
+  .field input, .field textarea, .field select{
+    width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:5px;
+    font-size:14px; font-family:inherit; background:var(--white); color:var(--ink);
+  }
+  .btn{
+    display:inline-block; padding:9px 16px; border-radius:5px; border:1px solid var(--ink);
+    background:var(--ink); color:var(--white); font-size:13px; font-weight:600; cursor:pointer;
+  }
+  .btn:hover{opacity:0.88;}
+  .btn-outline{background:transparent; color:var(--ink);}
+  .btn-danger{background:var(--danger); border-color:var(--danger);}
+  .btn-small{padding:5px 10px; font-size:12px;}
+  .error{color:var(--danger); font-size:13px; margin-top:8px;}
+
+  #app-view{display:none; min-height:100vh;}
+  .layout{display:flex; min-height:100vh;}
+  .sidebar{
+    width:200px; flex-shrink:0; background:var(--ink); color:var(--white);
+    padding:24px 0; display:flex; flex-direction:column;
+  }
+  .sidebar .brand{font-weight:700; font-size:16px; padding:0 20px 20px; border-bottom:1px solid rgba(255,255,255,0.15);}
+  .sidebar nav{margin-top:16px; display:flex; flex-direction:column;}
+  .sidebar nav a{
+    color:rgba(255,255,255,0.75); text-decoration:none; padding:10px 20px; font-size:13px; cursor:pointer;
+  }
+  .sidebar nav a:hover, .sidebar nav a.active{color:var(--white); background:rgba(255,255,255,0.08);}
+  .sidebar .spacer{flex:1;}
+  .main{flex:1; padding:32px 40px; max-width:960px;}
+  .main h2{margin-top:0;}
+  table{width:100%; border-collapse:collapse; background:var(--white); border:1px solid var(--line); border-radius:6px; overflow:hidden;}
+  th, td{text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); font-size:13px;}
+  th{background:#F2EEE5; font-weight:600;}
+  tr:last-child td{border-bottom:none;}
+  .status-badge{padding:2px 8px; border-radius:20px; font-size:11px; font-weight:600;}
+  .status-active{background:#DDEFE0; color:#256B37;}
+  .status-inactive{background:#EFE3DD; color:#8A4A2B;}
+  .toolbar{display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;}
+  .toolbar input[type=search]{padding:8px 10px; border:1px solid var(--line); border-radius:5px; width:240px;}
+
+  #form-view{display:none;}
+  .form-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .form-grid .field-full{grid-column:1 / -1;}
+  fieldset{border:1px solid var(--line); border-radius:6px; margin:20px 0; padding:16px;}
+  legend{font-weight:600; padding:0 6px;}
+  .row-repeat{display:flex; gap:8px; margin-bottom:8px; align-items:center;}
+  .row-repeat > *{flex:1;}
+  .row-repeat .btn-small{flex:0 0 auto;}
+  .actions-bar{margin-top:24px; display:flex; gap:10px;}
+  .hint{color:var(--muted); font-size:12px; margin-top:2px;}
+</style>
+</head>
+<body>
+
+<div id="login-view">
+  <div class="login-box">
+    <h1>Be Miami — Fleet Admin</h1>
+    <form id="login-form">
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="login-email" required autocomplete="username">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="login-password" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn" style="width:100%;">Sign In</button>
+      <div class="error" id="login-error"></div>
+    </form>
+  </div>
+</div>
+
+<div id="app-view">
+  <div class="layout">
+    <div class="sidebar">
+      <div class="brand">BE.MIAMI ADMIN</div>
+      <nav>
+        <a id="nav-fleet" class="active">Fleet</a>
+        <a id="nav-add">Add Yacht</a>
+        <a id="nav-logout">Logout</a>
+      </nav>
+      <div class="spacer"></div>
+    </div>
+
+    <div class="main">
+      <div id="fleet-view">
+        <div class="toolbar">
+          <h2 style="margin:0;">Fleet</h2>
+          <input type="search" id="search-input" placeholder="Search yachts…">
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Order</th><th>Name</th><th>Length</th><th>Guests</th><th>From</th><th>Status</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="fleet-table-body"></tbody>
+        </table>
+      </div>
+
+      <div id="form-view">
+        <h2 id="form-title">Add Yacht</h2>
+        <form id="yacht-form">
+          <div class="form-grid">
+            <div class="field"><label>Name</label><input type="text" id="f-name" required></div>
+            <div class="field"><label>Length (ft)</label><input type="number" id="f-length" required></div>
+            <div class="field"><label>Guest capacity</label><input type="number" id="f-capacity" required></div>
+            <div class="field"><label>Pickup location</label><input type="text" id="f-pickup"></div>
+            <div class="field"><label>Main image URL / path</label><input type="text" id="f-image"></div>
+            <div class="field"><label>Gallery link (View Yacht)</label><input type="text" id="f-gallery"></div>
+            <div class="field"><label>Sort order</label><input type="number" id="f-sort"></div>
+            <div class="field">
+              <label>Status</label>
+              <select id="f-active">
+                <option value="true">Active (visible on site)</option>
+                <option value="false">Inactive (hidden)</option>
+              </select>
+            </div>
+          </div>
+
+          <fieldset>
+            <legend>Pricing</legend>
+            <div class="hint">Leave day band blank for a normal rate. Set it to "Mon–Thu" / "Fri–Sun" only for a yacht with different weekday/weekend pricing. Check "Hourly" for a per-hour rate instead of fixed durations, and use the note field for things like "2-hour minimum".</div>
+            <div id="rates-list"></div>
+            <button type="button" class="btn btn-outline btn-small" id="add-rate-row">+ Add rate</button>
+          </fieldset>
+
+          <fieldset>
+            <legend>Details (Gratuity, Includes, Rules, Optional, etc.)</legend>
+            <div class="hint">Each row is a label + value, e.g. label "Gratuity", value "Not included". Add as many as needed.</div>
+            <div id="details-list"></div>
+            <button type="button" class="btn btn-outline btn-small" id="add-detail-row">+ Add detail</button>
+          </fieldset>
+
+          <fieldset>
+            <legend>Photos</legend>
+            <div class="hint">First photo is used as the main card image. Paste any image URL — Supabase Storage uploads can be added later.</div>
+            <div id="photos-list"></div>
+            <button type="button" class="btn btn-outline btn-small" id="add-photo-row">+ Add photo</button>
+          </fieldset>
+
+          <div class="actions-bar">
+            <button type="submit" class="btn">Save</button>
+            <button type="button" class="btn btn-outline" id="cancel-form">Cancel</button>
+            <button type="button" class="btn btn-danger" id="delete-yacht" style="margin-left:auto; display:none;">Delete Yacht</button>
+          </div>
+          <div class="error" id="form-error"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script type="module" src="js/admin.js"></script>
+</body>
+</html>
