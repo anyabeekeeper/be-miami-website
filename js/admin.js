@@ -199,11 +199,31 @@ document.getElementById("add-photo-row").addEventListener("click", () => {
   wireRemoveButtons(list);
 });
 
+function makeSlug(name, lengthFt) {
+  const n = name
+    .normalize("NFKD").replace(/[̀-ͯ]/g, "")
+    .replace(/["“”]/g, "")
+    .replace(/&/g, "and")
+    .replace(/[^a-zA-Z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .toLowerCase();
+  return `${lengthFt}-${n}`;
+}
+
 async function populateForm(yacht) {
   document.getElementById("form-error").textContent = "";
   editingId = yacht?.id ?? null;
   document.getElementById("form-title").textContent = yacht ? `Edit — ${yacht.name}` : "Add Yacht";
   document.getElementById("delete-yacht").style.display = yacht ? "inline-block" : "none";
+
+  const urlField = document.getElementById("f-public-url");
+  const urlRow = document.getElementById("f-public-url-row");
+  if (yacht?.url_slug) {
+    urlRow.style.display = "";
+    urlField.value = `https://www.bemiamirentals.com/yachts/${yacht.url_slug}`;
+  } else {
+    urlRow.style.display = "none";
+  }
 
   document.getElementById("f-name").value = yacht?.name ?? "";
   document.getElementById("f-length").value = yacht?.length_ft ?? "";
@@ -258,10 +278,21 @@ document.getElementById("yacht-form").addEventListener("submit", async (e) => {
 
   let yachtId = editingId;
   if (yachtId) {
+    // url_slug is intentionally never included here — it's set once at
+    // creation and must never change automatically if the name changes.
     const { error } = await supabase.from("yachts").update(yachtPayload).eq("id", yachtId);
     if (error) { errEl.textContent = error.message; return; }
   } else {
-    const { data, error } = await supabase.from("yachts").insert(yachtPayload).select().single();
+    const baseSlug = makeSlug(yachtPayload.name, yachtPayload.length_ft);
+    let slug = baseSlug;
+    let attempt = 1;
+    let data, error;
+    while (attempt <= 5) {
+      ({ data, error } = await supabase.from("yachts").insert({ ...yachtPayload, url_slug: slug }).select().single());
+      if (!error) break;
+      if (error.code === "23505") { attempt += 1; slug = `${baseSlug}-${attempt}`; continue; }
+      break;
+    }
     if (error) { errEl.textContent = error.message; return; }
     yachtId = data.id;
   }
