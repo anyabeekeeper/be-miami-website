@@ -132,6 +132,10 @@
         <h2 id="form-title">Add Yacht</h2>
         <form id="yacht-form">
           <div class="form-grid">
+            <div class="field" id="f-public-url-row" style="display:none; grid-column:1/-1;">
+              <label>Public URL</label>
+              <input type="text" id="f-public-url" readonly style="background:#f2f2f2; color:#666; cursor:text;">
+            </div>
             <div class="field"><label>Name</label><input type="text" id="f-name" required></div>
             <div class="field"><label>Length (ft)</label><input type="number" id="f-length" required></div>
             <div class="field"><label>Guest capacity</label><input type="number" id="f-capacity" required></div>

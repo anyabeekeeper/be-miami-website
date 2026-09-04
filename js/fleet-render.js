@@ -72,7 +72,7 @@ function renderCard(yacht) {
   return `
   <div class="yacht" id="${esc(yacht.slug || yacht.id)}" data-length="${yacht.length_ft}" data-price="${startingPrice(yacht.yacht_rates)}">
     <div class="yacht-media"><img src="${esc(mainPhoto)}" alt="${yacht.length_ft}' ${esc(yacht.name)} yacht charter Miami" loading="lazy" width="1100" height="688"></div>
-    <div class="yacht-top"><span class="yacht-len-tag">${yacht.length_ft}′</span><h3>${esc(yacht.name)}</h3><span class="yacht-cap">${yacht.guest_capacity} guests</span></div>
+    <div class="yacht-top"><span class="yacht-len-tag">${yacht.length_ft}′</span><h3>${yacht.url_slug ? `<a href="/yachts/${esc(yacht.url_slug)}">${esc(yacht.name)}</a>` : esc(yacht.name)}</h3><span class="yacht-cap">${yacht.guest_capacity} guests</span></div>
     <div class="yacht-pickup">Pickup: <b>${esc(yacht.pickup_location)}</b></div>
     ${renderRates(yacht.yacht_rates)}
     ${renderDetails(yacht.yacht_details)}
